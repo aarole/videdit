@@ -1,5 +1,10 @@
 #!/usr/bin/python3
 
+#Made By:
+#Aditya Arole
+#Resul Ucar
+#Zixiao Li
+
 from ibm_watson import SpeechToTextV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from os.path import join, dirname

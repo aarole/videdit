@@ -19,13 +19,11 @@ pip install -r requirements.txt
 * In your working directory, have the program executable and a directory named *files*
 * Put your video(s) in the *files* directory.
   * Follow the naming convention:
-      RANDOM_STRING1.mp4
-      RANDOM_STRING2.mp4
-      RANDOM_STRING3.mp4
+      RANDOM_STRING1.mp4 
+      RANDOM_STRING2.mp4 
+      RANDOM_STRING3.mp4 
       Where *RANDOM_STRING* is any word.
 * Run the program executable
-  * Windows users: run videdit.exe
-  * All OS users: run main.py
 
 ## Usage
 * Set *Start word* to the take start indicator (the word in the video(s) that indicates the start of a take)

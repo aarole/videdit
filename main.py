@@ -174,14 +174,17 @@ class Editor:
 
 		subprocess.call(f'{ffmpeg_path}/ffmpeg -f concat -safe 0 -i files.txt -c copy output.mp4',shell=True)
 		print('Finished...')
+		self.update_txt(self.stat, "Finished")
 
 		print('Cleaning up...')
+		self.update_txt(self.stat, "Cleaning up")
+
 		file_list = list()
 		#subprocess.call(f'rm {root_path}/combined.mp4',shell=True)
 		file_list += glob.glob("p*.mp4")
 		file_list += glob.glob("*.txt")
 		file_list += glob.glob("*.mp3")
-		file_list.append('combined.mp4')
+		#file_list.append('combined.mp4')
 
 		for f in file_list:
 			os.remove(f)
@@ -195,6 +198,7 @@ class Editor:
 
 
 root = Tk()
+root.wm_iconbitmap("logo.ico")
 
 obj = Editor(root)
 

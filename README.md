@@ -12,7 +12,7 @@ For the program to work, your videos must be recorded in a certain way. View the
 ```
 pip install -r requirements.txt
 ```
-* Install ffmpeg from [here](https://ffmpeg.org/download.html)
+* Download ffmpeg from [here](https://ffmpeg.org/download.html)
   * Make a note of the location of the executable/binary
 
 ## Prep
@@ -24,6 +24,8 @@ pip install -r requirements.txt
       RANDOM_STRING3.mp4
       Where *RANDOM_STRING* is any word.
 * Run the program executable
+  * Windows users: run videdit.exe
+  * All OS users: run main.py
 
 ## Usage
 * Set *Start word* to the take start indicator (the word in the video(s) that indicates the start of a take)

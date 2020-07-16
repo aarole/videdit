@@ -1,3 +1,4 @@
 files/
 bin/
 secret
+__pycache__

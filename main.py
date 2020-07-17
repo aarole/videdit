@@ -78,6 +78,7 @@ class Editor:
 
 	
 	def run(self):
+		self.base_dir = os.getcwd()
 		self.start_time = time.time()
 
 		thread1 = threading.Thread(target=self.update_txt, args=(self.stat,"Running"))
@@ -109,9 +110,9 @@ class Editor:
 		time_taken = math.ceil(end_time-self.start_time)
 		print(f'Execution time: {time_taken} seconds.')
 
+		os.chdir(self.base_dir)
 		self.update_txt(self.stat, f"Complete. Execution time: {time_taken} seconds")
-
-
+		
 	
 	def edit(self):
 		start_word = str(self.start.get()).strip()

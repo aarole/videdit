@@ -15,10 +15,8 @@ import os
 import time
 import threading
 import glob
+import math
 
-#file_name = str(input('Enter file names (CSV): '))
-
-#videos = list(file_name.split(','))
 
 class Editor:
 	def __init__(self, root):
@@ -40,34 +38,33 @@ class Editor:
 		self.sl = ttk.Label(root, text="Start word:")
 		self.sl.grid(row=0,column=0,columnspan=2)
 
-		self.start = ttk.Entry(root,textvariable=self.start_val,width=80,state='normal')
+		self.start = ttk.Entry(root,textvariable=self.start_val,width=59,state='normal')
 		self.start.grid(row=0,column=2,columnspan=2)
 
 		self.el = ttk.Label(root, text="End word:")
 		self.el.grid(row=2,column=0,columnspan=2)
 
-		self.end = ttk.Entry(root,textvariable=self.end_val,width=80,state='normal')
+		self.end = ttk.Entry(root,textvariable=self.end_val,width=59,state='normal')
 		self.end.grid(row=2,column=2, columnspan=2)
 
 		self.aul = ttk.Label(root, text="Auth key:")
 		self.aul.grid(row=4,column=0,columnspan=2)
 
-		self.auth_txt = ttk.Entry(root,textvariable=self.auth_val,width=80,state='normal')
+		self.auth_txt = ttk.Entry(root,textvariable=self.auth_val,width=59,state='normal')
 		self.auth_txt.grid(row=4,column=2, columnspan=2)
 
 		self.pl = ttk.Label(root, text="Path to ffmpeg binary:")
 		self.pl.grid(row=6,column=0,columnspan=2)
 
-		self.path_txt = ttk.Entry(root,textvariable=self.path_val,width=80,state='normal')
+		self.path_txt = ttk.Entry(root,textvariable=self.path_val,width=59,state='normal')
 		self.path_txt.grid(row=6,column=2, columnspan=2)
 		
-		self.btn1 = ttk.Button(root, text='Run', command=lambda:self.run()).grid(row=8,column=1,columnspan=2)
+		self.run_btn = ttk.Button(root, text='Run', command=lambda:self.run()).grid(row=8,column=1,columnspan=3)
 
 		self.stl = ttk.Label(root, text="Status:")
 		self.stl.grid(row=10,column=0,columnspan=2)
 
-		self.stat = ttk.Entry(root,textvariable=self.stat_val,width=80,state='readonly')
-		# self.stat = ttk.Label(root)
+		self.stat = ttk.Entry(root,textvariable=self.stat_val,width=59,state='readonly')
 		self.stat.grid(row=10,column=2, columnspan=2)
 
 		self.update_txt(self.stat, "Suspended")
@@ -78,31 +75,50 @@ class Editor:
 		box.delete(0, 'end')
 		box.insert(0, text)
 		box['state'] = 'readonly'
-		# box['text'] = text
 
 	
 	def run(self):
+		self.start_time = time.time()
+
 		thread1 = threading.Thread(target=self.update_txt, args=(self.stat,"Running"))
 		thread2 = threading.Thread(target=self.edit, args=())
 		
 		thread1.start()
 		thread2.start()
-		#self.update_txt(self.stat, "Running")
-		#self.edit()
 
 
+	def clean_up(self):
+		print('Cleaning up...')
+		self.update_txt(self.stat, "Cleaning up")
+
+		file_list = list()
+		file_list += glob.glob("p*.mp4")
+		file_list += glob.glob("*.txt")
+		file_list += glob.glob("*.mp3")
+		file_list.append('combined.mp4')
+
+		for f in file_list:
+			os.remove(f)
+
+		self.complete_execution()
+
+		
+	def complete_execution(self):
+		print('\nProgram complete!')
+		end_time  = time.time()
+		time_taken = math.ceil(end_time-self.start_time)
+		print(f'Execution time: {time_taken} seconds.')
+
+		self.update_txt(self.stat, f"Complete. Execution time: {time_taken} seconds")
+
+
+	
 	def edit(self):
-		start_time = time.time()
-
-		# start_word = str(input('Enter start word: '))
-		# end_word = str(input('Enter end word: '))
-
 		start_word = str(self.start.get()).strip()
 		end_word = str(self.end.get()).strip()
 		ffmpeg_path = str(self.path_txt.get()).strip()
 
 		os.chdir("files")
-		# root_path = str(join(dirname(__file__),'./files'))
 
 		videos = os.listdir()
 
@@ -126,6 +142,7 @@ class Editor:
 		speech_to_text.set_service_url('https://api.us-south.speech-to-text.watson.cloud.ibm.com/instances/f7f5d78f-1da8-4a82-904c-e520bb249e9d')
 
 		response = speech_to_text.recognize(audio=audio_file,content_type='audio/mp3',keywords_threshold=0.8,keywords=[start_word,end_word]).get_result()
+		audio_file.close()
 
 		timestamps_all = []
 
@@ -176,25 +193,7 @@ class Editor:
 		print('Finished...')
 		self.update_txt(self.stat, "Finished")
 
-		print('Cleaning up...')
-		self.update_txt(self.stat, "Cleaning up")
-
-		file_list = list()
-		#subprocess.call(f'rm {root_path}/combined.mp4',shell=True)
-		file_list += glob.glob("p*.mp4")
-		file_list += glob.glob("*.txt")
-		file_list += glob.glob("*.mp3")
-		#file_list.append('combined.mp4')
-
-		for f in file_list:
-			os.remove(f)
-
-		print('\nProgram complete!')
-		end_time  = time.time()
-		time_taken = end_time-start_time
-		print(f'Execution time: {time_taken} seconds.')
-
-		self.update_txt(self.stat, f"Complete. Execution time: {time_taken} seconds")
+		self.clean_up()
 
 
 root = Tk()

@@ -2,3 +2,4 @@ files/
 bin/
 secret
 __pycache__
+*.mp4

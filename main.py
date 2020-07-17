@@ -8,7 +8,7 @@
 from ibm_watson import SpeechToTextV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from os.path import join, dirname
-from tkinter import StringVar, Tk, ttk
+from tkinter import StringVar, Tk, ttk, HORIZONTAL
 import ffmpeg
 import subprocess
 import os
@@ -16,6 +16,7 @@ import time
 import threading
 import glob
 import math
+import multiprocessing
 
 
 class Editor:
@@ -59,13 +60,16 @@ class Editor:
 		self.path_txt = ttk.Entry(root,textvariable=self.path_val,width=59,state='normal')
 		self.path_txt.grid(row=6,column=2, columnspan=2)
 		
-		self.run_btn = ttk.Button(root, text='Run', command=lambda:self.run()).grid(row=8,column=1,columnspan=3)
+		self.run_btn = ttk.Button(root, text='Run', command=lambda:self.run()).grid(row=8,column=1,columnspan=2)
 
 		self.stl = ttk.Label(root, text="Status:")
 		self.stl.grid(row=10,column=0,columnspan=2)
 
 		self.stat = ttk.Entry(root,textvariable=self.stat_val,width=59,state='readonly')
 		self.stat.grid(row=10,column=2, columnspan=2)
+		
+		self.progress = ttk.Progressbar(root, orient=HORIZONTAL, length = 315, mode = 'determinate') 
+		self.progress.grid(row=12, column=1, columnspan=4)
 
 		self.update_txt(self.stat, "Suspended")
 
@@ -80,17 +84,35 @@ class Editor:
 	def run(self):
 		self.base_dir = os.getcwd()
 		self.start_time = time.time()
+		self.vid_count = 0
+		self.progress['value'] = 0
 
 		thread1 = threading.Thread(target=self.update_txt, args=(self.stat,"Running"))
 		thread2 = threading.Thread(target=self.edit, args=())
-		
-		thread1.start()
-		thread2.start()
+		thread3 = threading.Thread(target=self.update_progress, args=())
 
+		thread1.start()
+		thread3.start()
+		thread2.start()
+	
+	
+	def update_progress(self):
+		while self.progress['value'] != 85:
+			self.progress['value'] += 1
+			time.sleep(1)
+	
 
 	def clean_up(self):
 		print('Cleaning up...')
+		
 		self.update_txt(self.stat, "Cleaning up")
+
+		try:
+			self.audio_file.close()
+			self.init_video_list.close()
+			self.text_file.close()
+		except:
+			pass
 
 		file_list = list()
 		file_list += glob.glob("p*.mp4")
@@ -99,7 +121,12 @@ class Editor:
 		file_list.append('combined.mp4')
 
 		for f in file_list:
-			os.remove(f)
+			try:
+				os.remove(f)
+			except FileNotFoundError:
+				pass
+		time.sleep(5)
+		os.chdir(self.base_dir)
 
 		self.complete_execution()
 
@@ -110,7 +137,7 @@ class Editor:
 		time_taken = math.ceil(end_time-self.start_time)
 		print(f'Execution time: {time_taken} seconds.')
 
-		os.chdir(self.base_dir)
+		self.progress['value'] = 100
 		self.update_txt(self.stat, f"Complete. Execution time: {time_taken} seconds")
 		
 	
@@ -123,10 +150,11 @@ class Editor:
 
 		videos = os.listdir()
 
-		init_video_list = open(f'videos.txt','w')
+		self.init_video_list = open(f'videos.txt','w')
 		for video in videos:
-			init_video_list.write(f"file '{video}'\n")
-		init_video_list.close()
+			self.init_video_list.write(f"file '{video}'\n")
+			self.vid_count += 1
+		self.init_video_list.close()
  
 		subprocess.call(f'{ffmpeg_path}/ffmpeg -f concat -safe 0 -i videos.txt -c copy combined.mp4',shell=True)
 
@@ -134,7 +162,7 @@ class Editor:
 
 		subprocess.call(f'{ffmpeg_path}/ffmpeg -i {video_file_path} -f mp3 -ab 192000 -vn audio_main.mp3',shell=True)
 
-		audio_file = open('audio_main.mp3','rb')
+		self.audio_file = open('audio_main.mp3','rb')
 
 		authenticator = IAMAuthenticator(str(self.auth_txt.get()).strip())
 
@@ -142,8 +170,11 @@ class Editor:
 
 		speech_to_text.set_service_url('https://api.us-south.speech-to-text.watson.cloud.ibm.com/instances/f7f5d78f-1da8-4a82-904c-e520bb249e9d')
 
-		response = speech_to_text.recognize(audio=audio_file,content_type='audio/mp3',keywords_threshold=0.8,keywords=[start_word,end_word]).get_result()
-		audio_file.close()
+		try:
+			response = speech_to_text.recognize(audio=self.audio_file,content_type='audio/mp3',keywords_threshold=0.8,keywords=[start_word,end_word]).get_result()
+		except:
+			self.clean_up()
+		self.audio_file.close()
 
 		timestamps_all = []
 
@@ -182,24 +213,30 @@ class Editor:
 
 		print(good_timestamps_final)
 		i=1
-		text_file = open(f'files.txt','w')
+		self.text_file = open(f'files.txt','w')
 		for item2 in good_timestamps_final:
 			dur = item2[1]- item2[0]
 			subprocess.call(f'{ffmpeg_path}/ffmpeg -ss {str(item2[0])} -t {str(dur)} -i {video_file_path} p{i}.mp4', shell=True)
-			text_file.write(f"file 'p{i}.mp4'\n")
+			self.text_file.write(f"file 'p{i}.mp4'\n")
 			i+=1
-		text_file.close()
+		self.text_file.close()
 
 		subprocess.call(f'{ffmpeg_path}/ffmpeg -f concat -safe 0 -i files.txt -c copy output.mp4',shell=True)
-		print('Finished...')
-		self.update_txt(self.stat, "Finished")
+		print('Output created...')
+		self.update_txt(self.stat, "Output created")
+		time.sleep(2)
 
 		self.clean_up()
 
 
-root = Tk()
-root.wm_iconbitmap("logo.ico")
+def main():
+	root = Tk()
+	root.wm_iconbitmap("logo.ico")
 
-obj = Editor(root)
+	_ = Editor(root)
 
-root.mainloop()
+	root.mainloop()
+
+
+if __name__ == "__main__":
+	main()

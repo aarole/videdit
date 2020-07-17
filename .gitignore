@@ -3,3 +3,6 @@ bin/
 secret
 __pycache__
 *.mp4
+build/
+dist/
+*.spec

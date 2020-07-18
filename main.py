@@ -54,7 +54,7 @@ class Editor:
 		self.auth_txt = ttk.Entry(root,textvariable=self.auth_val,width=59,state='normal')
 		self.auth_txt.grid(row=4,column=2, columnspan=2)
 
-		self.pl = ttk.Label(root, text="Path to ffmpeg binary:")
+		self.pl = ttk.Label(root, text="Complete path to\n  ffmpeg binary:")
 		self.pl.grid(row=6,column=0,columnspan=2)
 
 		self.path_txt = ttk.Entry(root,textvariable=self.path_val,width=59,state='normal')

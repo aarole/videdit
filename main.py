@@ -68,7 +68,7 @@ class Editor:
 		self.stat = ttk.Entry(root,textvariable=self.stat_val,width=59,state='readonly')
 		self.stat.grid(row=10,column=2, columnspan=2)
 		
-		self.progress = ttk.Progressbar(root, orient=HORIZONTAL, length = 315, mode = 'determinate') 
+		self.progress = ttk.Progressbar(root, orient=HORIZONTAL, length = 329, mode = 'determinate') 
 		self.progress.grid(row=12, column=1, columnspan=4)
 
 		self.update_txt(self.stat, "Suspended")

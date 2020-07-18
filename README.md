@@ -7,6 +7,20 @@ For the program to work, your videos must be recorded in a certain way. View the
 * ffmpeg
 * ibm-watson
 
+## Download
+### Stable build
+* Option 1: Downloading from the website
+  * Go to https://ivegotablank.space/download.html and download the latest release
+* Option 2: Downloading from GitHub
+  * Go to https://github.com/aarole/videdit/releases and download the latest release
+
+### Dev build
+Use this build to have the latest updates. The software in this build might contain some unexpected bugs.
+```
+git clone https://github.com/aarole/videdit.git
+cd videdit/
+```
+
 ## Setup
 * Install Python dependencies with:
 ```

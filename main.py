@@ -3,7 +3,7 @@
 # Made By:
 # Aditya Arole
 # Resul Ucar
-# Zixiao Li
+# Zixiao (Sean) Li
 
 from ibm_watson import SpeechToTextV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
